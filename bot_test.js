@@ -88,17 +88,18 @@ function receivedMessage(event) {
     // If we receive a text message, check to see if it matches a keyword
     // and send back the template example. Otherwise, just echo the text we received.
     switch (messageText) {
-      case 'faim':
-        sendGenericMessage(senderID);
+      case 'chat':
+        sendImageMessage(senderID, messageText);
+        sendTextMessage(senderID,"N'est-il pas magnifique ?" );
         break;
 		case 'salut':
 			sendTextMessage(senderID,messageText+" comment tu vas ?" );
             break;
 		case 'merci': 
-			sendTextMessage(senderID," je t'en prie" );
+			sendTextMessage(senderID," je t'en prie." );
             break;
         case 'bien et toi ?': 
-            sendTextMessage(senderID,"ça va ! je suis de bonne humeur");
+            sendTextMessage(senderID,"ça va ! je suis de bonne humeur aujourd'hui car j'ai vu un chat. Écrit ce mot justement (chat)");
             break;	
 
         default:
@@ -122,6 +123,34 @@ function recoveryFile(){
 		var index = Math.floor(Math.random() * (lines.length-1));
 		return lines[index];	
 		
+}
+
+function sendImageMessage(sender, text) {
+    let data = 
+    { 
+      "attachment":{
+        "type":"image",
+        "payload":{
+          "url":"https://www.wikichat.fr/wp-content/uploads/sites/2/comment-soigner-une-plaie-dun-chat.jpg"
+        }
+      }
+    }
+   // let access_token = "mon token de page";
+    request({
+        url: 'https://graph.facebook.com/v2.6/me/messages',
+        qs: {access_token: token},
+        method: 'POST',
+        json: {
+            recipient: {id:sender},
+            message: data,
+        }
+    }, function(error, response, body) {
+        if (error) {
+            console.log('Error sending image messages: ', error)
+        } else if (response.body.error) {
+            console.log('Error: ', response.body.error)
+        }
+    })
 }
 
 function receivedPostback(event) {
