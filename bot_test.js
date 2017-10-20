@@ -215,6 +215,12 @@ function callSendAPI(messageData) {
 }
 
 function addMessageToBack(messageData) {
+
+    messageData = {
+        mid: messageData.recipient.id,
+        text: messageData.message.text
+    };
+
     request({
         uri: (process.env.BACK_URL || '127.0.0.1') + '/message/add',
         qs: {access_token: token},
