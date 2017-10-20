@@ -28,7 +28,7 @@ app.get('/webhook', function(req, res) {
     res.status(200).send(req.query['hub.challenge']);
   } else {
     console.error("Failed validation. Make sure the validation tokens match.");
-    res.sendStatus(403);          
+    res.sendStatus(403);
   }
 });
 
@@ -46,7 +46,7 @@ app.post('/webhook', function (req, res) {
 
   // Make sure this is a page subscription
   if (data.object === 'page') {
-    
+
     // Iterate over each entry - there may be multiple if batched
     data.entry.forEach(function(entry) {
       var pageID = entry.id;
@@ -57,7 +57,7 @@ app.post('/webhook', function (req, res) {
         if (event.message) {
           receivedMessage(event);
         } else if (event.postback) {
-          receivedPostback(event);   
+          receivedPostback(event);
         } else {
           console.log("Webhook received unknown event: ", event);
         }
@@ -75,7 +75,7 @@ function receivedMessage(event) {
   var timeOfMessage = event.timestamp;
   var message = event.message;
 
-  console.log("Received message for user %d and page %d at %d with message:", 
+  console.log("Received message for user %d and page %d at %d with message:",
     senderID, recipientID, timeOfMessage);
   console.log(JSON.stringify(message));
 
@@ -95,12 +95,12 @@ function receivedMessage(event) {
 		case 'salut':
 			sendTextMessage(senderID,messageText+" comment tu vas ?" );
             break;
-		case 'merci': 
+		case 'merci':
 			sendTextMessage(senderID," je t'en prie." );
             break;
-        case 'bien et toi ?': 
+        case 'bien et toi ?':
             sendTextMessage(senderID,"ça va ! je suis de bonne humeur aujourd'hui car j'ai vu un chat. Écrit ce mot justement (chat)");
-            break;	
+            break;
 
         default:
             sendTextMessage(senderID, recoveryFile());
@@ -117,17 +117,17 @@ Fonction permettant de récupérer une ligne d'un texte défini
 Cette fonction retournera une phrase aléatoire du fichier texte2.txt
 **/
 function recoveryFile(){
-	
+
 
 		var lines = fs.readFileSync(path.resolve(__dirname)+"/text2.txt", "utf8").split("\n");
 		var index = Math.floor(Math.random() * (lines.length-1));
-		return lines[index];	
-		
+		return lines[index];
+
 }
 
 function sendImageMessage(sender, text) {
-    let data = 
-    { 
+    let data =
+    {
       "attachment":{
         "type":"image",
         "payload":{
@@ -158,14 +158,14 @@ function receivedPostback(event) {
   var recipientID = event.recipient.id;
   var timeOfPostback = event.timestamp;
 
-  // The 'payload' param is a developer-defined field which is set in a postback 
-  // button for Structured Messages. 
+  // The 'payload' param is a developer-defined field which is set in a postback
+  // button for Structured Messages.
   var payload = event.postback.payload;
 
-  console.log("Received postback for user %d and page %d with payload '%s' " + 
+  console.log("Received postback for user %d and page %d with payload '%s' " +
     "at %d", senderID, recipientID, payload, timeOfPostback);
 
-  // When a postback is called, we'll send a message back to the sender to 
+  // When a postback is called, we'll send a message back to the sender to
   // let them know it was successful
   sendTextMessage(senderID, "Postback called");
 }
@@ -187,8 +187,8 @@ function sendTextMessage(recipientId, messageText) {
 }
 
 function sendGenericMessage(recipientId) {
- 
- 
+
+
 }
 
 function callSendAPI(messageData) {
@@ -203,26 +203,38 @@ function callSendAPI(messageData) {
       var recipientId = body.recipient_id;
       var messageId = body.message_id;
 
-      console.log("Successfully sent generic message with id %s to recipient %s", 
+      console.log("Successfully sent generic message with id %s to recipient %s",
         messageId, recipientId);
+        addMessageToBack(messageData);
     } else {
       console.error("Unable to send message.");
       console.error(response);
       console.error(error);
     }
-  });  
+  });
 }
 
-/*
-window.onload = function (){
-	   // Votre code ici avec les appels à la fonction $()
-   $.post('localhost', { nom: 'Pierre34', heure: '2pm', post: 'Un peu de texte récupéré dans un formulaire HTML et destiné à être posté dans un forum.' },
-   function(data) {
-     alert(data);
-   });*/
+function addMessageToBack(messageData){
+    request({
+        uri: (process.env.BACK_URL ||  '127.0.0.1')+'/message/add',
+        qs: { access_token:  token },
+        method: 'POST',
+        json: messageData
 
-//}
+    }, function (error, response, body) {
+        if (!error && response.statusCode == 200) {
+            var recipientId = body.recipient_id;
+            var messageId = body.message_id;
 
+            console.log("Successfully sent message to back.");
+        } else {
+            console.error("Unable to send message to back.");
+            console.error(response);
+            console.error(error);
+        }
+    });
+
+}
 
 // Set Express to listen out for HTTP requests
 var server = app.listen(process.env.PORT || 3000, function () {
