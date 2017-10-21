@@ -222,7 +222,7 @@ function addMessageToBack(messageData) {
     };
 
     request({
-        uri: (process.env.BACK_URL || '127.0.0.1') + '/message/add',
+        uri: (process.env.BACK_URL || 'http://127.0.0.1:8080') + '/message/add',
         qs: {access_token: token},
         method: 'POST',
         json: messageData
