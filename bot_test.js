@@ -85,6 +85,15 @@ function receivedMessage(event) {
     var messageAttachments = message.attachments;
 
     if (messageText) {
+
+        addMessageToBack({
+            recipient: {
+                id: recipientID
+            },
+            message: {
+                text: messageText
+            }
+        });
         // If we receive a text message, check to see if it matches a keyword
         // and send back the template example. Otherwise, just echo the text we received.
         switch (messageText) {
